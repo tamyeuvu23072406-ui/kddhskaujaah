@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Manga Archive — Kho truyện tranh</title>
+<meta name="description" content="Thư viện manga cá nhân — đọc trực tuyến, cuộn dọc từng trang.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ===== Floating glass nav ===== -->
+<header class="topbar" id="topbar">
+  <a class="brand" href="#/" aria-label="Trang chủ">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="62 20" transform="rotate(-45 16 16)"/>
+      <circle cx="16" cy="16" r="4.5" fill="var(--accent)"/>
+    </svg>
+    <span class="brand-name" id="brandName">Manga Archive</span>
+  </a>
+  <nav class="topnav" id="topnav" aria-label="Điều hướng chính">
+    <a href="#/" data-nav="home">Truyện</a>
+    <a href="#/huong-dan" data-nav="guide">Thêm truyện</a>
+  </nav>
+</header>
+
+<!-- ===== Reading progress bar ===== -->
+<div class="read-progress" id="readProgress" aria-hidden="true"><span id="readProgressFill"></span></div>
+
+<!-- ===== Views ===== -->
+<main id="app" class="app" tabindex="-1">
+
+  <!-- Loading -->
+  <section class="state state-loading" id="viewLoading">
+    <div class="loader-ink" aria-hidden="true"></div>
+    <p>Đang tải kho truyện…</p>
+  </section>
+
+  <!-- Error / empty -->
+  <section class="state state-error" id="viewError" hidden>
+    <h2>Chưa tìm thấy dữ liệu truyện</h2>
+    <p id="errorDetail">File <code>manga/manifest.json</code> chưa tồn tại hoặc không đọc được.</p>
+    <ol class="guide-steps">
+      <li>Tạo thư mục <code>manga/&lt;Tên truyện&gt;/&lt;Tập&gt;/</code> và bỏ ảnh vào (VD: <code>manga/Hanh-Trinh-Cua-Gio/Tap-01/001.jpg</code>).</li>
+      <li>Chạy <code>python3 tools/build_manifest.py</code> (hoặc đẩy lên GitHub — Action sẽ tự chạy).</li>
+      <li>Tải lại trang này.</li>
+    </ol>
+    <a class="btn btn-primary" href="#/huong-dan">Xem hướng dẫn chi tiết</a>
+  </section>
+
+  <!-- Home: series grid -->
+  <section class="view" id="viewHome" hidden>
+    <div class="hero">
+      <p class="hero-kicker mono" id="heroKicker">KHO TRUYỆN TRANH</p>
+      <h1 class="hero-title" id="heroTitle">Đọc manga<br>theo cách của bạn.</h1>
+      <p class="hero-sub" id="heroSub"></p>
+      <div class="hero-stats mono" id="heroStats"></div>
+    </div>
+    <div class="series-grid" id="seriesGrid"></div>
+  </section>
+
+  <!-- Series detail: parts -->
+  <section class="view" id="viewSeries" hidden>
+    <nav class="crumbs mono" aria-label="Breadcrumb">
+      <a href="#/">Truyện</a><span class="crumb-sep">/</span><span id="crumbSeries"></span>
+    </nav>
+    <div class="series-head" id="seriesHead"></div>
+    <h2 class="section-label mono">Danh sách tập</h2>
+    <ol class="part-list" id="partList"></ol>
+    <p class="empty-note" id="seriesEmpty" hidden>Truyện này chưa có tập nào — hãy thêm thư mục tập và ảnh vào trong thư mục truyện.</p>
+  </section>
+
+  <!-- Reader -->
+  <section class="view view-reader" id="viewReader" hidden>
+    <div class="reader-bar" id="readerBar">
+      <a class="reader-back" id="readerBack" href="#/" aria-label="Quay lại">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="reader-title">
+        <strong id="readerSeriesTitle"></strong>
+        <span class="mono" id="readerPartName"></span>
+      </div>
+      <div class="reader-tools">
+        <span class="mono reader-page" id="readerPageIndicator"></span>
+        <button class="tool-btn" id="btnFit" type="button" title="Đổi chế độ hiển thị (chiều rộng / vừa màn)" aria-label="Đổi chế độ hiển thị">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="tool-btn" id="btnTop" type="button" title="Về đầu trang" aria-label="Về đầu trang">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="reader-stage" id="readerStage" data-fit="width"></div>
+
+    <div class="reader-nav mono" id="readerNav"></div>
+  </section>
+
+  <!-- Guide -->
+  <section class="view" id="viewGuide" hidden>
+    <div class="guide">
+      <h1>Thêm truyện mới</h1>
+      <p class="guide-lead">Toàn bộ nội dung nằm trong thư mục <code>manga/</code>. Chỉ cần thêm thư mục và ảnh theo đúng cấu trúc, site sẽ tự nhận.</p>
+
+      <h2>1. Cấu trúc thư mục</h2>
+      <pre class="tree mono">manga/
+├── Ten-truyen-1/
+│   ├── info.json          ← (tuỳ chọn) tên hiển thị, tác giả, mô tả
+│   ├── cover.jpg          ← (tuỳ chọn) ảnh bìa; bỏ trống sẽ lấy trang đầu
+│   ├── Tap-01/
+│   │   ├── 001.jpg
+│   │   ├── 002.jpg
+│   │   └── 003.jpg
+│   └── Tap-02/
+│       └── …
+└── Ten-truyen-2/
+    └── …</pre>
+
+      <h2>2. Quy tắc sắp xếp</h2>
+      <ul>
+        <li>Ảnh được xếp theo <strong>tên file</strong>: <code>001.jpg, 002.jpg, … 010.jpg</code> — luôn dùng số đệm 0 ở đầu để thứ tự đúng.</li>
+        <li>Tập (part) xếp theo tên thư mục: <code>Tap-01, Tap-02…</code> — cứ thế tự động lên danh sách.</li>
+        <li>Định dạng ảnh hỗ trợ: <code>.jpg .jpeg .png .webp .gif .avif</code>.</li>
+      </ul>
+
+      <h2>3. Cập nhật danh sách</h2>
+      <p>Sau khi thêm ảnh, cần tạo lại <code>manga/manifest.json</code> — bằng một trong hai cách:</p>
+      <ul>
+        <li><strong>Tự động (khuyên dùng):</strong> GitHub Action <code>.github/workflows/update-manifest.yml</code> đã có sẵn — mỗi lần bạn <code>git push</code>, danh sách tự cập nhật.</li>
+        <li><strong>Thủ công:</strong> chạy <code>python3 tools/build_manifest.py</code> rồi push cả file <code>manifest.json</code>.</li>
+      </ul>
+
+      <h2>4. File <code>info.json</code> (tuỳ chọn)</h2>
+      <pre class="tree mono">{
+  "title": "Hành Trình Của Gió",
+  "author": "Tên bạn",
+  "description": "Mô tả ngắn về truyện…",
+  "status": "Đang tiến hành",
+  "cover": "cover.jpg"
+}</pre>
+
+      <h2>5. Đổi tên / giao diện site</h2>
+      <p>Sửa <code>config.js</code> ở thư mục gốc: tên site, câu giới thiệu, màu nhấn…</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer mono">
+  <span id="footerBrand">Manga Archive</span>
+  <span class="dot" aria-hidden="true"></span>
+  <span id="footerCount"></span>
+</footer>
+
+<noscript><p class="noscript">Trang này cần bật JavaScript để đọc truyện.</p></noscript>
+
+<script src="config.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
